@@ -2,6 +2,7 @@
  * Module for displaying "Waiting for..." dialog using Bootstrap
  *
  * @author Eugene Maslovich <ehpc@em42.ru>
+ * @author Frank Wang <al_wys@hotmail.com>
  */
 
 (function (root, factory) {
@@ -9,7 +10,8 @@
 
 	if (typeof define === 'function' && define.amd) {
 		define(['jquery'], function ($) {
-			return (root.waitingDialog = factory($));
+			// Return (root.waitingDialog = factory($));
+			return factory($);
 		});
 	}
 	else {
@@ -29,22 +31,23 @@
 		}
 		return $(
 			'<div class="modal fade" data-backdrop="static" data-keyboard="false" tabindex="-1" role="dialog" aria-hidden="true" style="padding-top:15%; overflow-y:visible;">' +
-				'<div class="modal-dialog modal-m">' +
-					'<div class="modal-content">' +
-						'<div class="modal-header" style="display: none;"></div>' +
-						'<div class="modal-body">' +
-							'<div class="progress progress-striped active" style="margin-bottom:0;">' +
-								'<div class="progress-bar" style="width: 100%"></div>' +
-							'</div>' +
-						'</div>' +
-					'</div>' +
-				'</div>' +
+			'<div class="modal-dialog modal-m">' +
+			'<div class="modal-content">' +
+			'<div class="modal-header" style="display: none;"></div>' +
+			'<div class="modal-body">' +
+			'<div class="progress progress-striped active" style="margin-bottom:0;">' +
+			'<div class="progress-bar" style="width: 100%"></div>' +
+			'</div>' +
+			'</div>' +
+			'</div>' +
+			'</div>' +
 			'</div>'
 		);
 	}
 
 	var $dialog, // Dialog object
-		settings; // Dialog settings
+		settings, // Dialog settings
+		def = $.Deferred(); // Use a Promise object to detect whether the dialog is shown
 
 	return {
 		/**
@@ -80,7 +83,7 @@
 				contentElement: 'p',
 				contentClass: 'content',
 				onHide: null, // This callback runs after the dialog was hidden
-				onShow: null // This callback runs after the dialog was shown
+				onShow: def.resolve // This callback runs after the dialog was shown
 			}, options);
 
 			var $headerTag, $contentTag;
@@ -142,7 +145,12 @@
 		 */
 		hide: function () {
 			if (typeof $dialog !== 'undefined') {
-				$dialog.modal('hide');
+				def.then(function () {
+					$dialog.modal('hide');
+
+					// Reset
+					def = $.Deferred();
+				});
 			}
 		},
 		/**
